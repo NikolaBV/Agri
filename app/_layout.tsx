@@ -6,6 +6,7 @@ import {
 import { Stack } from "expo-router";
 import React from "react";
 import { MD3DarkTheme, PaperProvider } from "react-native-paper";
+import { AuthProvider } from "../src/contexts/AuthContext";
 
 const paperTheme = {
   ...MD3DarkTheme,
@@ -32,13 +33,31 @@ const navigationTheme: NavigationTheme = {
 
 const RootLayout = () => {
   return (
-    <PaperProvider theme={paperTheme}>
-      <NavigationThemeProvider value={navigationTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-      </NavigationThemeProvider>
-    </PaperProvider>
+    <AuthProvider>
+      <PaperProvider theme={paperTheme}>
+        <NavigationThemeProvider value={navigationTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="post/[id]"
+              options={{ title: "Post details", headerBackTitle: "Back" }}
+            />
+            <Stack.Screen
+              name="post/[id]/edit"
+              options={{ title: "Edit post", presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="auth/login"
+              options={{ title: "Sign in", presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="auth/register"
+              options={{ title: "Create account", presentation: "modal" }}
+            />
+          </Stack>
+        </NavigationThemeProvider>
+      </PaperProvider>
+    </AuthProvider>
   );
 };
 
