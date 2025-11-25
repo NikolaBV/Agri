@@ -1,14 +1,17 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
 import {
-  ActivityIndicator,
+  Box,
   Button,
-  Card,
-  Chip,
+  Heading,
+  HStack,
+  ScrollView,
+  Spinner,
   Text,
-  useTheme,
-} from "react-native-paper";
+  VStack,
+  useColorModeValue,
+} from "native-base";
+import ThemeToggle from "../../src/components/ThemeToggle";
 import agent from "../../src/api/agent";
 import { PostDto } from "../../src/api/models";
 import { useAuth } from "../../src/contexts/AuthContext";
@@ -23,11 +26,16 @@ const focusAreas = [
 ];
 
 const Index = () => {
-  const { colors } = useTheme();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const [highlights, setHighlights] = useState<PostDto[]>([]);
   const [loadingHighlights, setLoadingHighlights] = useState(false);
+
+  const background = useColorModeValue("brand.lightBg", "brand.darkBg");
+  const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
+  const headingColor = useColorModeValue("muted.900", "muted.100");
+  const bodyColor = useColorModeValue("muted.800", "muted.100");
+  const mutedColor = useColorModeValue("muted.600", "muted.300");
 
   useEffect(() => {
     let active = true;
@@ -63,121 +71,127 @@ const Index = () => {
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        padding: 24,
-        gap: 32,
-      }}
-    >
-      <View style={{ gap: 16 }}>
-        <Text variant="headlineMedium" style={{ color: colors.onSurface }}>
-          Grow better together
-        </Text>
-        <Text variant="bodyLarge" style={{ color: colors.onSurface }}>
-          {heroSubtitle}
-        </Text>
-        <View style={{ flexDirection: "row", gap: 12 }}>
+    <ScrollView flex={1} bg={background} px="6" py="8">
+      <VStack space="8">
+        <VStack space="4">
+          <HStack justifyContent="space-between" alignItems="center">
+            <Heading size="lg" color={headingColor}>
+              Grow better together
+            </Heading>
+            <ThemeToggle compact />
+          </HStack>
+          <Text fontSize="md" color={bodyColor} lineHeight="lg">
+            {heroSubtitle}
+          </Text>
+          <HStack space="3">
+            <Button flex={1} colorScheme="primary" onPress={() => router.push("/(tabs)/feed")}>
+              Browse feed
+            </Button>
+            <Button
+              flex={1}
+              variant="outline"
+              colorScheme="primary"
+              onPress={() =>
+                router.push(isAuthenticated ? "/(tabs)/feed" : "/auth/register")
+              }
+            >
+              {isAuthenticated ? "Share a tutorial" : "Join the growers"}
+            </Button>
+          </HStack>
           <Button
-            mode="contained"
-            onPress={() => router.push("/(tabs)/feed")}
-            style={{ flex: 1 }}
+            variant="link"
+            colorScheme="primary"
+            onPress={() => (isAuthenticated ? logout() : router.push("/auth/login"))}
           >
-            Browse feed
+            {isAuthenticated ? "Sign out" : "Already sharing? Sign in"}
           </Button>
-          <Button
-            mode="outlined"
-            onPress={() =>
-              router.push(isAuthenticated ? "/(tabs)/feed" : "/auth/register")
-            }
-            style={{ flex: 1 }}
-          >
-            {isAuthenticated ? "Share a tutorial" : "Join the growers"}
-          </Button>
-        </View>
-        <Button
-          onPress={() =>
-            isAuthenticated ? logout() : router.push("/auth/login")
-          }
-        >
-          {isAuthenticated ? "Sign out" : "Already sharing? Sign in"}
-        </Button>
-      </View>
+        </VStack>
 
-      <View style={{ gap: 12 }}>
-        <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-          Explore topics
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {focusAreas.map((label) => (
-            <Chip
-              key={label}
-              textStyle={{ color: colors.onSurface }}
+        <VStack space="3">
+          <Heading size="sm" color={headingColor}>
+            Explore topics
+          </Heading>
+          <HStack flexWrap="wrap" space="2">
+            {focusAreas.map((label) => (
+              <Button
+                key={label}
+                size="sm"
+                variant="outline"
+                colorScheme="primary"
+                rounded="full"
+                onPress={() => router.push("/(tabs)/feed")}
+              >
+                {label}
+              </Button>
+            ))}
+          </HStack>
+        </VStack>
+
+        <VStack space="4">
+          <HStack justifyContent="space-between" alignItems="center">
+            <Heading size="sm" color={headingColor}>
+              Fresh from the field
+            </Heading>
+            <Button
+              variant="ghost"
+              colorScheme="primary"
               onPress={() => router.push("/(tabs)/feed")}
             >
-              {label}
-            </Chip>
-          ))}
-        </View>
-      </View>
-
-      <View style={{ gap: 16 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-            Fresh from the field
-          </Text>
-          <Button onPress={() => router.push("/(tabs)/feed")}>View all</Button>
-        </View>
-        {loadingHighlights ? (
-          <ActivityIndicator />
-        ) : highlights.length ? (
-          highlights.map((post) => (
-            <Card key={post.id} mode="contained" style={{ backgroundColor: colors.secondary }}>
-              <Card.Title
-                title={post.title}
-                subtitle={
-                  post.author
-                    ? `by ${post.author.displayName || post.author.id}`
-                    : "Community"
-                }
-                titleNumberOfLines={2}
-                subtitleStyle={{ color: colors.onSurface }}
-                titleStyle={{ color: colors.onSurface }}
-              />
-              <Card.Content style={{ gap: 12 }}>
-                <Text
-                  variant="bodyMedium"
-                  style={{ color: colors.onSurface }}
-                  numberOfLines={3}
-                >
-                  {post.summary}
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                  {(post.tags ?? []).slice(0, 3).map((tag) => (
-                    <Chip key={`${post.id}-${tag}`} compact>
-                      {tag}
-                    </Chip>
-                  ))}
-                </View>
-              </Card.Content>
-              <Card.Actions>
-                <Button onPress={() => router.push(`/post/${post.id}`)}>
-                  Read tutorial
-                </Button>
-              </Card.Actions>
-            </Card>
-          ))
-        ) : (
-          <Text style={{ color: colors.onSurface }}>
-            Tutorials you save or publish will appear here.
-          </Text>
-        )}
-      </View>
+              View all
+            </Button>
+          </HStack>
+          {loadingHighlights ? (
+            <Spinner size="lg" color="primary.400" />
+          ) : highlights.length ? (
+            highlights.map((post) => (
+              <Box
+                key={post.id}
+                bg={cardBg}
+                borderRadius="2xl"
+                p="5"
+                shadow="3"
+              >
+                <VStack space="3">
+                  <Heading size="md" color={headingColor}>
+                    {post.title}
+                  </Heading>
+                  <Text fontSize="sm" color={mutedColor}>
+                    {post.author
+                      ? `by ${post.author.displayName || post.author.id}`
+                      : "Community"}
+                  </Text>
+                  <Text color={bodyColor}>{post.summary}</Text>
+                  <HStack flexWrap="wrap" space="2">
+                    {(post.tags ?? []).slice(0, 3).map((tag) => (
+                      <Button
+                        key={`${post.id}-${tag}`}
+                        size="sm"
+                        variant="outline"
+                        colorScheme="primary"
+                        rounded="full"
+                      >
+                        {tag}
+                      </Button>
+                    ))}
+                  </HStack>
+                  <Button
+                    alignSelf="flex-start"
+                    variant="ghost"
+                    colorScheme="primary"
+                    onPress={() => router.push(`/post/${post.id}`)}
+                  >
+                    Read tutorial
+                  </Button>
+                </VStack>
+              </Box>
+            ))
+          ) : (
+            <Text color={mutedColor}>
+              Tutorials you save or publish will appear here.
+            </Text>
+          )}
+        </VStack>
+      </VStack>
     </ScrollView>
   );
 };

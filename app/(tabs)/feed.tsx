@@ -1,21 +1,25 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, RefreshControl, View } from "react-native";
+import { FlatList, RefreshControl } from "react-native";
 import {
-  ActivityIndicator,
+  Box,
   Button,
-  Card,
-  Chip,
-  Searchbar,
+  Heading,
+  HStack,
+  Icon,
+  Input,
+  Spinner,
   Text,
-  useTheme,
-} from "react-native-paper";
+  VStack,
+  useColorModeValue,
+} from "native-base";
+import ThemeToggle from "../../src/components/ThemeToggle";
 import agent from "../../src/api/agent";
 import { PostDto } from "../../src/api/models";
 import { useAuth } from "../../src/contexts/AuthContext";
 
 const FeedScreen = () => {
-  const { colors } = useTheme();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const [posts, setPosts] = useState<PostDto[]>([]);
@@ -24,6 +28,12 @@ const FeedScreen = () => {
   const [query, setQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const background = useColorModeValue("brand.lightBg", "brand.darkBg");
+  const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
+  const headingColor = useColorModeValue("muted.900", "muted.100");
+  const bodyColor = useColorModeValue("muted.800", "muted.100");
+  const mutedColor = useColorModeValue("muted.600", "muted.300");
 
   const loadPosts = useCallback(async (searchValue?: string) => {
     setError(null);
@@ -69,99 +79,135 @@ const FeedScreen = () => {
     setQuery(value);
   };
 
-  const renderItem = ({ item }: { item: PostDto }) => (
-    <Card
-      mode="contained"
-      style={{ marginBottom: 16, backgroundColor: colors.secondary }}
-      onPress={() => router.push(`/post/${item.id}`)}
-    >
-      <Card.Title
-        title={item.title}
-        subtitle={
-          item.author
-            ? `by ${item.author.displayName || item.author.id}`
-            : undefined
-        }
-        titleNumberOfLines={2}
-        titleStyle={{ color: colors.onSurface }}
-        subtitleStyle={{ color: colors.onSurface }}
-      />
-      <Card.Content style={{ gap: 12 }}>
-        <Text
-          variant="bodyMedium"
-          numberOfLines={4}
-          style={{ color: colors.onSurface }}
-        >
-          {item.summary}
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-          {(item.tags ?? []).map((tag) => (
-            <Chip key={`${item.id}-${tag}`} compact onPress={() => handleApplyFilter(tag)}>
-              {tag}
-            </Chip>
-          ))}
-        </View>
-      </Card.Content>
-      <Card.Actions>
-        <Button onPress={() => router.push(`/post/${item.id}`)}>Open</Button>
-        {isAuthenticated && user?.id === item.author?.id && (
-          <Button onPress={() => router.push(`/post/${item.id}/edit`)}>
-            Edit
-          </Button>
-        )}
-      </Card.Actions>
-    </Card>
-  );
+  const renderItem = ({ item }: { item: PostDto }) => {
+    const isOwner = isAuthenticated && user?.id === item.author?.id;
+
+    return (
+      <Box
+        bg={cardBg}
+        borderRadius="2xl"
+        p="5"
+        mb="4"
+        shadow="3"
+      >
+        <VStack space="3">
+          <Heading size="md" color={headingColor}>
+            {item.title}
+          </Heading>
+          {item.author && (
+            <Text fontSize="sm" color={mutedColor}>
+              by {item.author.displayName || item.author.id}
+            </Text>
+          )}
+          <Text color={bodyColor}>{item.summary}</Text>
+          <HStack flexWrap="wrap" space="2">
+            {(item.tags ?? []).map((tag) => (
+              <Button
+                key={`${item.id}-${tag}`}
+                size="sm"
+                variant="outline"
+                colorScheme="primary"
+                rounded="full"
+                onPress={() => handleApplyFilter(tag)}
+              >
+                {tag}
+              </Button>
+            ))}
+          </HStack>
+          <HStack space="3" mt="2">
+            <Button flex={1} colorScheme="primary" onPress={() => router.push(`/post/${item.id}`)}>
+              Open
+            </Button>
+            {isOwner && (
+              <Button
+                flex={1}
+                variant="outline"
+                colorScheme="primary"
+                onPress={() => router.push(`/post/${item.id}/edit`)}
+              >
+                Edit
+              </Button>
+            )}
+          </HStack>
+        </VStack>
+      </Box>
+    );
+  };
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Searchbar
-        placeholder="Search tutorials"
-        value={searchInput}
-        onChangeText={setSearchInput}
-        onSubmitEditing={() => setQuery(searchInput)}
-        style={{ marginBottom: 16 }}
-        returnKeyType="search"
-      />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-        {topicFilters.map((tag) => (
-          <Chip
-            key={tag}
-            onPress={() => handleApplyFilter(tag)}
-            selected={query === tag}
-          >
-            {tag}
-          </Chip>
-        ))}
-      </View>
+    <Box flex={1} bg={background} safeArea px="4" pt="4">
+      <VStack space="4" flex={1}>
+        <HStack alignItems="center" justifyContent="space-between">
+          <Heading size="lg" color={headingColor}>
+            Community feed
+          </Heading>
+          <ThemeToggle compact />
+        </HStack>
 
-      {error && (
-        <Text style={{ color: colors.error, marginBottom: 12 }}>{error}</Text>
-      )}
-
-      {loading && !refreshing ? (
-        <ActivityIndicator />
-      ) : (
-        <FlatList
-          data={posts}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <Input
+          placeholder="Search tutorials"
+          value={searchInput}
+          onChangeText={setSearchInput}
+          onSubmitEditing={() => setQuery(searchInput)}
+          InputLeftElement={
+            <Icon
+              as={Ionicons}
+              name="search"
+              size="5"
+              color="muted.400"
+              ml="3"
+            />
           }
-          ListEmptyComponent={
-            <View style={{ padding: 32, alignItems: "center" }}>
-              <Text style={{ color: colors.onSurface, marginBottom: 8 }}>
-                No tutorials yet
-              </Text>
-              <Text style={{ color: colors.onSurface }}>
-                Try adjusting your filters or check back later.
-              </Text>
-            </View>
-          }
+          bg={cardBg}
+          returnKeyType="search"
         />
-      )}
-    </View>
+
+        <HStack flexWrap="wrap" space="2">
+          {topicFilters.map((tag) => (
+            <Button
+              key={tag}
+              size="sm"
+              variant={query === tag ? "solid" : "outline"}
+              colorScheme="primary"
+              rounded="full"
+              onPress={() => handleApplyFilter(tag)}
+            >
+              {tag}
+            </Button>
+          ))}
+        </HStack>
+
+        {error && (
+          <Text color="error.400" fontSize="sm">
+            {error}
+          </Text>
+        )}
+
+        {loading && !refreshing ? (
+          <Spinner size="lg" color="primary.400" accessibilityLabel="Loading tutorials" />
+        ) : (
+          <FlatList
+            data={posts}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            contentContainerStyle={{ paddingBottom: 48 }}
+            ListEmptyComponent={
+              <Box py="10" alignItems="center">
+                <Heading size="sm" color={headingColor} mb="1">
+                  No tutorials yet
+                </Heading>
+                <Text color={mutedColor} textAlign="center">
+                  Try adjusting your filters or check back later.
+                </Text>
+              </Box>
+            }
+          />
+        )}
+      </VStack>
+    </Box>
   );
 };
 

@@ -1,16 +1,20 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { Platform } from "react-native";
 import {
   Button,
+  Heading,
+  Input,
+  KeyboardAvoidingView,
+  ScrollView,
   Text,
-  TextInput,
-  useTheme,
-} from "react-native-paper";
+  TextArea,
+  VStack,
+  useColorModeValue,
+} from "native-base";
 import { useAuth } from "../../src/contexts/AuthContext";
 
 const RegisterScreen = () => {
-  const { colors } = useTheme();
   const router = useRouter();
   const { register } = useAuth();
   const [email, setEmail] = useState("");
@@ -20,6 +24,10 @@ const RegisterScreen = () => {
   const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const background = useColorModeValue("brand.lightBg", "brand.darkBg");
+  const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
+  const headingColor = useColorModeValue("muted.900", "muted.100");
 
   const handleSubmit = async () => {
     setError(null);
@@ -43,62 +51,81 @@ const RegisterScreen = () => {
 
   return (
     <KeyboardAvoidingView
+      flex={1}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1, padding: 24 }}
     >
-      <View style={{ flex: 1, gap: 16, justifyContent: "center" }}>
-        <Text variant="headlineMedium" style={{ color: colors.onSurface }}>
-          Join Agri
-        </Text>
-        {error && <Text style={{ color: colors.error }}>{error}</Text>}
-        <TextInput
-          label="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-        />
-        <TextInput
-          label="Username"
-          autoCapitalize="none"
-          value={username}
-          onChangeText={setUsername}
-          mode="outlined"
-        />
-        <TextInput
-          label="Display name"
-          value={displayName}
-          onChangeText={setDisplayName}
-          mode="outlined"
-        />
-        <TextInput
-          label="Short bio"
-          value={bio}
-          onChangeText={setBio}
-          mode="outlined"
-          multiline
-        />
-        <TextInput
-          label="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-        />
-        <Button
-          mode="contained"
-          onPress={handleSubmit}
-          disabled={
-            loading || !email.trim() || !password || !username.trim()
-          }
+      <ScrollView
+        flex={1}
+        bg={background}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <VStack
+          flex={1}
+          space="4"
+          px="6"
+          py="8"
+          justifyContent="center"
         >
-          Create account
-        </Button>
-        <Button onPress={() => router.push("/auth/login")}>
-          Already have an account?
-        </Button>
-      </View>
+          <Heading size="lg" color={headingColor}>
+            Join Agri
+          </Heading>
+          {error && (
+            <Text color="error.400" fontSize="sm">
+              {error}
+            </Text>
+          )}
+          <Input
+            placeholder="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            bg={cardBg}
+          />
+          <Input
+            placeholder="Username"
+            autoCapitalize="none"
+            value={username}
+            onChangeText={setUsername}
+            bg={cardBg}
+          />
+          <Input
+            placeholder="Display name"
+            value={displayName}
+            onChangeText={setDisplayName}
+            bg={cardBg}
+          />
+          <TextArea
+            placeholder="Short bio"
+            value={bio}
+            onChangeText={setBio}
+            bg={cardBg}
+            h="24"
+          />
+          <Input
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChangeText={setPassword}
+            bg={cardBg}
+          />
+          <Button
+            colorScheme="primary"
+            onPress={handleSubmit}
+            isDisabled={!email.trim() || !password || !username.trim()}
+            isLoading={loading}
+          >
+            Create account
+          </Button>
+          <Button
+            variant="ghost"
+            colorScheme="primary"
+            onPress={() => router.push("/auth/login")}
+          >
+            Already have an account?
+          </Button>
+        </VStack>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };

@@ -1,14 +1,18 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
 import {
-  ActivityIndicator,
+  Box,
   Button,
+  Heading,
+  Input,
+  ScrollView,
+  Spinner,
   Switch,
   Text,
-  TextInput,
-  useTheme,
-} from "react-native-paper";
+  TextArea,
+  VStack,
+  useColorModeValue,
+} from "native-base";
 import agent from "../../../src/api/agent";
 import { PostDto } from "../../../src/api/models";
 import { useAuth } from "../../../src/contexts/AuthContext";
@@ -22,7 +26,6 @@ type FormState = {
 };
 
 const EditPostScreen = () => {
-  const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
@@ -38,6 +41,11 @@ const EditPostScreen = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const background = useColorModeValue("brand.lightBg", "brand.darkBg");
+  const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
+  const headingColor = useColorModeValue("muted.900", "muted.100");
+  const mutedColor = useColorModeValue("muted.600", "muted.300");
 
   const postId = useMemo(() => {
     const value = params.id;
@@ -60,7 +68,7 @@ const EditPostScreen = () => {
             title: data.title,
             summary: data.summary,
             content: data.content,
-            tags: data.tags.join(", "),
+            tags: (data.tags ?? []).join(", "),
             isPublished: data.isPublished,
           });
         }
@@ -112,81 +120,90 @@ const EditPostScreen = () => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator />
-      </View>
+      <Box flex={1} bg={background} alignItems="center" justifyContent="center">
+        <Spinner size="lg" color="primary.400" />
+      </Box>
     );
   }
 
   if (!post || post.author?.id !== user?.id) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24 }}>
-        <Text style={{ color: colors.error, marginBottom: 16 }}>
+      <Box flex={1} bg={background} alignItems="center" justifyContent="center" px="6">
+        <Text color="error.400" mb="4" textAlign="center">
           {error || "You are not allowed to edit this tutorial."}
         </Text>
-        <Button mode="contained" onPress={() => router.replace("/(tabs)/feed")}>
+        <Button colorScheme="primary" onPress={() => router.replace("/(tabs)/feed")}>
           Back to feed
         </Button>
-      </View>
+      </Box>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
-      {error && <Text style={{ color: colors.error }}>{error}</Text>}
+    <ScrollView flex={1} bg={background} contentContainerStyle={{ padding: 24 }}>
+      <VStack space="4">
+        <Heading size="lg" color={headingColor}>
+          Edit tutorial
+        </Heading>
+        {error && (
+          <Text color="error.400" fontSize="sm">
+            {error}
+          </Text>
+        )}
 
-      <TextInput
-        label="Title"
-        value={form.title}
-        onChangeText={(text) => handleChange("title", text)}
-        mode="outlined"
-      />
-      <TextInput
-        label="Summary"
-        value={form.summary}
-        onChangeText={(text) => handleChange("summary", text)}
-        mode="outlined"
-        multiline
-      />
-      <TextInput
-        label="Content"
-        value={form.content}
-        onChangeText={(text) => handleChange("content", text)}
-        mode="outlined"
-        multiline
-        numberOfLines={6}
-        style={{ minHeight: 160 }}
-      />
-      <TextInput
-        label="Tags"
-        value={form.tags}
-        onChangeText={(text) => handleChange("tags", text)}
-        mode="outlined"
-        placeholder="Comma separated"
-      />
+        <VStack space="3">
+          <Input
+            placeholder="Title"
+            value={form.title}
+            onChangeText={(text) => handleChange("title", text)}
+            bg={cardBg}
+          />
+          <Input
+            placeholder="Summary"
+            value={form.summary}
+            onChangeText={(text) => handleChange("summary", text)}
+            bg={cardBg}
+          />
+          <TextArea
+            placeholder="Content"
+            value={form.content}
+            onChangeText={(text) => handleChange("content", text)}
+            bg={cardBg}
+            h="40"
+          />
+          <Input
+            placeholder="Tags (comma separated)"
+            value={form.tags}
+            onChangeText={(text) => handleChange("tags", text)}
+            bg={cardBg}
+          />
+        </VStack>
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Text style={{ color: colors.onSurface }}>Published</Text>
-        <Switch
-          value={form.isPublished}
-          onValueChange={(value) => handleChange("isPublished", value)}
-        />
-      </View>
+        <Box
+          bg={cardBg}
+          borderRadius="2xl"
+          p="4"
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Text color={mutedColor}>Published</Text>
+          <Switch
+            size="md"
+            colorScheme="primary"
+            isChecked={form.isPublished}
+            onToggle={(value) => handleChange("isPublished", Boolean(value))}
+          />
+        </Box>
 
-      <Button
-        mode="contained"
-        onPress={handleSave}
-        disabled={saving}
-        style={{ marginTop: 8 }}
-      >
-        Save changes
-      </Button>
+        <Button
+          colorScheme="primary"
+          onPress={handleSave}
+          isLoading={saving}
+        >
+          Save changes
+        </Button>
+      </VStack>
     </ScrollView>
   );
 };

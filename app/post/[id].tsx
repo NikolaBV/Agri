@@ -1,19 +1,22 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert } from "react-native";
 import {
-  ActivityIndicator,
+  Box,
   Button,
-  Chip,
+  Heading,
+  HStack,
+  ScrollView,
+  Spinner,
   Text,
-  useTheme,
-} from "react-native-paper";
+  VStack,
+  useColorModeValue,
+} from "native-base";
 import agent from "../../src/api/agent";
 import { PostDto } from "../../src/api/models";
 import { useAuth } from "../../src/contexts/AuthContext";
 
 const PostDetailsScreen = () => {
-  const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const { user, isAuthenticated } = useAuth();
@@ -21,6 +24,12 @@ const PostDetailsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const background = useColorModeValue("brand.lightBg", "brand.darkBg");
+  const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
+  const headingColor = useColorModeValue("muted.900", "muted.100");
+  const bodyColor = useColorModeValue("muted.800", "muted.100");
+  const mutedColor = useColorModeValue("muted.600", "muted.300");
 
   const postId = useMemo(() => {
     const value = params.id;
@@ -88,104 +97,102 @@ const PostDetailsScreen = () => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator />
-      </View>
+      <Box flex={1} bg={background} alignItems="center" justifyContent="center">
+        <Spinner size="lg" color="primary.400" />
+      </Box>
     );
   }
 
   if (error || !post) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          padding: 24,
-        }}
-      >
-        <Text style={{ color: colors.error, marginBottom: 16 }}>
+      <Box flex={1} bg={background} alignItems="center" justifyContent="center" px="6">
+        <Text color="error.400" mb="4" textAlign="center">
           {error || "Post not found."}
         </Text>
-        <Button mode="contained" onPress={() => router.replace("/(tabs)/feed")}>
+        <Button colorScheme="primary" onPress={() => router.replace("/(tabs)/feed")}>
           Back to feed
         </Button>
-      </View>
+      </Box>
     );
   }
 
   const isOwner = isAuthenticated && user?.id === post.author?.id;
 
   return (
-    <ScrollView
-      contentContainerStyle={{ padding: 24, gap: 24 }}
-      style={{ flex: 1 }}
-    >
-      <View style={{ gap: 8 }}>
-        <Text variant="headlineMedium" style={{ color: colors.onSurface }}>
-          {post.title}
-        </Text>
-        {post.author && (
-          <Text variant="bodyMedium" style={{ color: colors.onSurface }}>
-            by {post.author.displayName || post.author.id}
+    <ScrollView flex={1} bg={background} contentContainerStyle={{ padding: 24 }}>
+      <VStack space="8">
+        <VStack space="2">
+          <Heading size="lg" color={headingColor}>
+            {post.title}
+          </Heading>
+          {post.author && (
+            <Text color={mutedColor}>
+              by {post.author.displayName || post.author.id}
+            </Text>
+          )}
+          <Text color={mutedColor} fontSize="sm">
+            {new Date(post.createdAt).toLocaleDateString()} •{" "}
+            {post.isPublished ? "Published" : "Draft"}
           </Text>
+        </VStack>
+
+        <VStack space="3" bg={cardBg} borderRadius="2xl" p="5" shadow="2">
+          <Heading size="sm" color={headingColor}>
+            Summary
+          </Heading>
+          <Text color={bodyColor}>{post.summary}</Text>
+        </VStack>
+
+        <VStack space="3" bg={cardBg} borderRadius="2xl" p="5" shadow="2">
+          <Heading size="sm" color={headingColor}>
+            Tutorial
+          </Heading>
+          <Text color={bodyColor} lineHeight="lg">
+            {post.content}
+          </Text>
+        </VStack>
+
+        <VStack space="3" bg={cardBg} borderRadius="2xl" p="5" shadow="2">
+          <Heading size="sm" color={headingColor}>
+            Tags
+          </Heading>
+          <HStack flexWrap="wrap" space="2">
+            {(post.tags ?? []).map((tag, index) => (
+              <Button
+                key={`${tag}-${index}`}
+                size="sm"
+                variant="outline"
+                colorScheme="primary"
+                rounded="full"
+              >
+                {tag}
+              </Button>
+            ))}
+          </HStack>
+        </VStack>
+
+        {isOwner && (
+          <HStack space="3">
+            <Button
+              flex={1}
+              colorScheme="primary"
+              onPress={() => router.push(`/post/${post.id}/edit`)}
+              isDisabled={mutating}
+            >
+              Edit
+            </Button>
+            <Button
+              flex={1}
+              variant="outline"
+              colorScheme="error"
+              onPress={handleDelete}
+              isDisabled={mutating}
+            >
+              Delete
+            </Button>
+          </HStack>
         )}
-        <Text variant="bodySmall" style={{ color: colors.onSurface }}>
-          {new Date(post.createdAt).toLocaleDateString()} •{" "}
-          {post.isPublished ? "Published" : "Draft"}
-        </Text>
-      </View>
-
-      <View style={{ gap: 12 }}>
-        <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-          Summary
-        </Text>
-        <Text variant="bodyLarge" style={{ color: colors.onSurface }}>
-          {post.summary}
-        </Text>
-      </View>
-
-      <View style={{ gap: 12 }}>
-        <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-          Tutorial
-        </Text>
-        <Text variant="bodyMedium" style={{ color: colors.onSurface, lineHeight: 24 }}>
-          {post.content}
-        </Text>
-      </View>
-
-      <View style={{ gap: 12 }}>
-        <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-          Tags
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {post.tags.map((tag, index) => (
-            <Chip key={`${tag}-${index}`}>{tag}</Chip>
-          ))}
-        </View>
-      </View>
-
-      {isOwner && (
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Button
-            mode="contained"
-            style={{ flex: 1 }}
-            onPress={() => router.push(`/post/${post.id}/edit`)}
-            disabled={mutating}
-          >
-            Edit
-          </Button>
-          <Button
-            mode="outlined"
-            style={{ flex: 1 }}
-            onPress={handleDelete}
-            disabled={mutating}
-            textColor={colors.error}
-          >
-            Delete
-          </Button>
-        </View>
-      )}
+      </VStack>
     </ScrollView>
   );
 };
