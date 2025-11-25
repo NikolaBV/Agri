@@ -1,6 +1,9 @@
 import { Text, View } from "react-native";
+import { useTheme } from "react-native-paper";
 
-export default function Index() {
+const Index = () => {
+  const { colors } = useTheme();
+
   return (
     <View
       style={{
@@ -9,7 +12,9 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text> app/index.tsx to edit this screen.</Text>
+      <Text style={{ color: colors.onSurface }}>Home</Text>
     </View>
   );
-}
+};
+
+export default Index;

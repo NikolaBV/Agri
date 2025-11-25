@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+# .NET API artifacts
+agri-api/**/bin/
+agri-api/**/obj/
+agri-api/Agri.API/agri_blog.db
