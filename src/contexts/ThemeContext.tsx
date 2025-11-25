@@ -4,7 +4,6 @@ import {
   Theme as NavigationTheme,
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
-import * as SecureStore from "expo-secure-store";
 import {
   NativeBaseProvider,
   StorageManager,
@@ -12,6 +11,7 @@ import {
   useColorMode,
 } from "native-base";
 import React, { createContext, useContext, useMemo } from "react";
+import sessionStorage from "../utils/sessionStorage";
 
 type ThemeMode = "light" | "dark";
 
@@ -39,25 +39,19 @@ const darkPalette = {
   primary: "#4ad7c1",
 };
 
+const THEME_KEY = "agri_theme_mode";
+
 const colorModeManager: StorageManager = {
   get: async () => {
-    try {
-      const value = await SecureStore.getItemAsync("agri_theme_mode");
-      if (value === "light" || value === "dark") {
-        return value;
-      }
-      return "dark";
-    } catch {
-      return "dark";
+    const stored = await sessionStorage.getItem(THEME_KEY);
+    if (stored === "light" || stored === "dark") {
+      return stored;
     }
+    return "dark";
   },
   set: async (value) => {
-    try {
-      if (value) {
-        await SecureStore.setItemAsync("agri_theme_mode", value);
-      }
-    } catch {
-      // no-op
+    if (value) {
+      await sessionStorage.setItem(THEME_KEY, value);
     }
   },
 };
