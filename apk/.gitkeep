@@ -1,0 +1,3 @@
+# Place your app-release.apk here
+# Build with: npx eas build --platform android --profile preview
+
