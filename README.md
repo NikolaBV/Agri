@@ -241,7 +241,7 @@ Agri/
 
 ## 👨‍💻 Author
 
-**Faculty Number**: [YOUR_FN]  
+**Faculty Number**: 2301321029
 **Course**: Mobile Applications 2025
 
 ---
