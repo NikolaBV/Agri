@@ -36,7 +36,7 @@ public static class ApplicationServiceExtensions
         services.AddSwaggerGen();
         services.AddControllers().AddJsonOptions(opt =>
         {
-            opt.JsonSerializerOptions.PropertyNamingPolicy = null;
+            opt.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         });
 
         services.AddMediatR(typeof(List.Handler).Assembly);

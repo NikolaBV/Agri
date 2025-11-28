@@ -92,7 +92,7 @@ const Index = () => {
               variant="outline"
               colorScheme="primary"
               onPress={() =>
-                router.push(isAuthenticated ? "/(tabs)/feed" : "/auth/register")
+                router.push(isAuthenticated ? "/post/create" : "/auth/register")
               }
             >
               {isAuthenticated ? "Share a tutorial" : "Join the growers"}

@@ -18,12 +18,13 @@ const client = axios.create({
 
 let authToken: string | null = null;
 
-export const setAgentAuthToken = (token: string | null) => {
-  authToken = token;
+export const setAgentAuthToken = (token: string | null | undefined) => {
+  // Ensure we only store valid tokens, not "undefined" strings
+  authToken = token && token !== "undefined" ? token : null;
 };
 
 client.interceptors.request.use((config) => {
-  if (authToken) {
+  if (authToken && authToken !== "undefined") {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${authToken}`;
   }
@@ -60,9 +61,9 @@ const mapPostArray = (posts: any[] | undefined | null) =>
 const requests = {
   get: <T>(url: string, params?: Record<string, unknown>) =>
     client.get<T>(url, { params }).then(responseBody),
-  post: <T>(url: string, body?: Record<string, unknown>) =>
+  post: <T>(url: string, body?: object) =>
     client.post<T>(url, body).then(responseBody),
-  put: <T>(url: string, body?: Record<string, unknown>) =>
+  put: <T>(url: string, body?: object) =>
     client.put<T>(url, body).then(responseBody),
   delete: <T>(url: string) => client.delete<T>(url).then(responseBody),
 };

@@ -26,7 +26,7 @@ public class Edit
     {
         public CommandValidator()
         {
-            RuleFor(x => x.Id).NotEmpty();
+            // Id comes from URL path, not request body, so no validation here
             RuleFor(x => x.Title).MaximumLength(160);
             RuleFor(x => x.Summary).MaximumLength(280);
         }

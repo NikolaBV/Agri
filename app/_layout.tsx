@@ -27,6 +27,10 @@ const RootNavigator = () => {
         options={{ title: "Edit post", presentation: "modal" }}
       />
       <Stack.Screen
+        name="post/create"
+        options={{ title: "New tutorial", presentation: "modal" }}
+      />
+      <Stack.Screen
         name="auth/login"
         options={{ title: "Sign in", presentation: "modal" }}
       />

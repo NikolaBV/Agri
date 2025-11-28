@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import {
   Box,
   Button,
   Heading,
   HStack,
+  Modal,
   ScrollView,
   Spinner,
   Text,
@@ -24,6 +25,7 @@ const PostDetailsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const background = useColorModeValue("brand.lightBg", "brand.darkBg");
   const cardBg = useColorModeValue("brand.lightCard", "brand.darkCard");
@@ -66,33 +68,42 @@ const PostDetailsScreen = () => {
     };
   }, [postId]);
 
-  const handleDelete = () => {
-    if (!postId) {
-      return;
+  const confirmDelete = async () => {
+    if (!postId) return;
+    try {
+      setMutating(true);
+      setShowDeleteModal(false);
+      await agent.Posts.delete(postId);
+      router.replace("/(tabs)/feed");
+    } catch (err) {
+      console.warn(err);
+      setMutating(false);
+      if (Platform.OS === "web") {
+        window.alert("Unable to delete this post right now.");
+      } else {
+        Alert.alert("Error", "Unable to delete this post right now.");
+      }
     }
-    Alert.alert(
-      "Delete tutorial",
-      "This action cannot be undone. Continue?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setMutating(true);
-              await agent.Posts.delete(postId);
-              router.replace("/(tabs)/feed");
-            } catch (err) {
-              console.warn(err);
-              setMutating(false);
-              Alert.alert("Unable to delete this post right now.");
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  };
+
+  const handleDelete = () => {
+    if (!postId) return;
+
+    if (Platform.OS === "web") {
+      // Use modal on web since Alert.alert doesn't work
+      setShowDeleteModal(true);
+    } else {
+      // Use native Alert on mobile
+      Alert.alert(
+        "Delete tutorial",
+        "This action cannot be undone. Continue?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete", style: "destructive", onPress: confirmDelete },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   if (loading) {
@@ -187,12 +198,38 @@ const PostDetailsScreen = () => {
               colorScheme="error"
               onPress={handleDelete}
               isDisabled={mutating}
+              isLoading={mutating}
             >
               Delete
             </Button>
           </HStack>
         )}
       </VStack>
+
+      {/* Delete Confirmation Modal for Web */}
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <Modal.Content maxWidth="400px">
+          <Modal.CloseButton />
+          <Modal.Header>Delete tutorial</Modal.Header>
+          <Modal.Body>
+            <Text>This action cannot be undone. Are you sure you want to delete this tutorial?</Text>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button.Group space={2}>
+              <Button
+                variant="ghost"
+                colorScheme="muted"
+                onPress={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button colorScheme="error" onPress={confirmDelete}>
+                Delete
+              </Button>
+            </Button.Group>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal>
     </ScrollView>
   );
 };

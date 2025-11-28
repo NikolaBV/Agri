@@ -5,6 +5,7 @@ import { FlatList, RefreshControl } from "react-native";
 import {
   Box,
   Button,
+  Fab,
   Heading,
   HStack,
   Icon,
@@ -193,7 +194,7 @@ const FeedScreen = () => {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
-            contentContainerStyle={{ paddingBottom: 48 }}
+            contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={
               <Box py="10" alignItems="center">
                 <Heading size="sm" color={headingColor} mb="1">
@@ -207,6 +208,21 @@ const FeedScreen = () => {
           />
         )}
       </VStack>
+
+      {isAuthenticated && (
+        <Fab
+          renderInPortal={false}
+          shadow={4}
+          size="lg"
+          colorScheme="primary"
+          icon={<Icon as={Ionicons} name="add" size="lg" color="white" />}
+          onPress={() => router.push("/post/create")}
+          label="New Post"
+          position="absolute"
+          bottom={6}
+          right={4}
+        />
+      )}
     </Box>
   );
 };

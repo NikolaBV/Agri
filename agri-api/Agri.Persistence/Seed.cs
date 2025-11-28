@@ -15,27 +15,33 @@ public static class Seed
 
         if (!await userManager.Users.AnyAsync())
         {
-            var users = new List<AppUser>
+            var users = new List<(AppUser User, string Password)>
             {
-                new AppUser
-                {
-                    DisplayName = "Farmer Tom",
-                    UserName = "farmer.tom",
-                    Email = "farmer.tom@example.com",
-                    Bio = "Organic farmer sharing tips from my greenhouse.",
-                },
-                new AppUser
-                {
-                    DisplayName = "Soil Scientist Ana",
-                    UserName = "ana.soil",
-                    Email = "ana.soil@example.com",
-                    Bio = "Agronomist focused on regenerative soil care.",
-                },
+                (
+                    new AppUser
+                    {
+                        DisplayName = "Farmer Tom",
+                        UserName = "farmer.tom",
+                        Email = "farmer.tom@example.com",
+                        Bio = "Organic farmer sharing tips from my greenhouse.",
+                    },
+                    "FarmerTom123!"
+                ),
+                (
+                    new AppUser
+                    {
+                        DisplayName = "Soil Scientist Ana",
+                        UserName = "ana.soil",
+                        Email = "ana.soil@example.com",
+                        Bio = "Agronomist focused on regenerative soil care.",
+                    },
+                    "SoilAna123!"
+                ),
             };
 
-            foreach (var user in users)
+            foreach (var (user, password) in users)
             {
-                await userManager.CreateAsync(user, "ChangeMe123!");
+                await userManager.CreateAsync(user, password);
             }
         }
 
