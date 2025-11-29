@@ -12,6 +12,10 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.agri.app",
+      "versionCode": 4,
+      "minSdkVersion": 24,
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,11 +42,19 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "./plugins/withAndroidCleartextTraffic.js"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "16a7f20b-8654-4284-9ac6-0d3872768af2"
+      },
+      "apiUrl": "http://192.168.1.196:5000/api"
     }
   }
 }

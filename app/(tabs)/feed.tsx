@@ -16,7 +16,7 @@ import {
   useColorModeValue,
 } from "native-base";
 import ThemeToggle from "../../src/components/ThemeToggle";
-import agent from "../../src/api/agent";
+import agent, { API_URL } from "../../src/api/agent";
 import { PostDto } from "../../src/api/models";
 import { useAuth } from "../../src/contexts/AuthContext";
 
@@ -45,9 +45,16 @@ const FeedScreen = () => {
         search: searchValue?.trim() || undefined,
       });
       setPosts(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError("Unable to load posts right now.");
-      console.warn(err);
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.message || "Unable to load posts right now.";
+      setError(`Unable to load posts: ${errorMessage}`);
+      console.error("API Error:", {
+        message: err?.message,
+        response: err?.response?.status,
+        url: err?.config?.url,
+        baseURL: err?.config?.baseURL,
+        fullError: err
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -179,9 +186,14 @@ const FeedScreen = () => {
         </HStack>
 
         {error && (
-          <Text color="error.400" fontSize="sm">
-            {error}
-          </Text>
+          <VStack space="1" px="4">
+            <Text color="error.400" fontSize="sm">
+              {error}
+            </Text>
+            <Text color="muted.500" fontSize="xs" textAlign="center">
+              API URL: {API_URL}
+            </Text>
+          </VStack>
         )}
 
         {loading && !refreshing ? (

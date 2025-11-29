@@ -194,12 +194,26 @@ The release APK can be found at:
 /apk/app-release.apk
 ```
 
-To build the APK yourself:
-```bash
-npx eas build --platform android --profile preview
-# or
-npx expo build:android -t apk
-```
+### Building the APK
+
+**Method 1: EAS Build (Recommended - Cloud-based)**
+
+1. Install EAS CLI: `npm install -g eas-cli`
+2. Login: `eas login`
+3. Configure: `eas build:configure` (first time only)
+4. Build: `npm run build:apk:eas` or `eas build --platform android --profile preview`
+5. Download the APK from the provided link and place it in `/apk/app-release.apk`
+
+**Method 2: Local Build (Requires Android SDK)**
+
+1. Generate native Android project: `npm run prebuild:android`
+2. Build APK:
+   - **Windows**: `cd android && gradlew.bat assembleRelease`
+   - **macOS/Linux**: `cd android && ./gradlew assembleRelease`
+3. Copy APK: The file will be in `android/app/build/outputs/apk/release/app-release.apk`
+   - Copy it to `apk/app-release.apk`
+
+For detailed instructions, see [BUILD_APK.md](./BUILD_APK.md)
 
 ---
 
